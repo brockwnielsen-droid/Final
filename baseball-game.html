@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Baseball Timing Game</title>
+
+  <style>
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      background-color: #f0f4ff;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      color: #002e6d;
+      margin-bottom: 5px;
+    }
+
+    p.subtitle {
+      margin-top: 0;
+      color: #333;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 15px;
+      font-size: 14px;
+    }
+
+    /* Field + characters */
+    #field {
+      position: relative;
+      width: 800px;
+      height: 260px;
+      margin: 20px auto;
+      background: linear-gradient(#3b7a1a, #295012);
+      border-radius: 10px;
+      border: 4px solid #002e6d;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+      overflow: hidden;
+    }
+
+    .mound {
+      position: absolute;
+      left: 140px;
+      bottom: 60px;
+      width: 90px;
+      height: 18px;
+      background: #c2a56b;
+      border-radius: 50%;
+    }
+
+    .home-plate {
+      position: absolute;
+      right: 120px;
+      bottom: 40px;
+      width: 22px;
+      height: 22px;
+      background: white;
+      transform: rotate(45deg);
+      box-shadow: 0 0 4px rgba(0,0,0,0.4);
+    }
+
+    .pitcher {
+      position: absolute;
+      left: 160px;
+      bottom: 78px;
+      width: 40px;
+      height: 80px;
+      background: #f7d7a5;
+      border: 2px solid #333;
+      border-radius: 5px;
+    }
+
+    .pitcher::before {
+      content: "";
+      position: absolute;
+      top: -25px;
+      left: 8px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #f7d7a5;
+      border: 2px solid #333;
+    }
+
+    .batter {
+      position: absolute;
+      right: 140px;
+      bottom: 78px;
+      width: 40px;
+      height: 80px;
+      background: #f7d7a5;
+      border: 2px solid #333;
+      border-radius: 5px;
+      transform-origin: center bottom;
+    }
+
+    .batter::before {
+      content: "";
+      position: absolute;
+      top: -25px;
+      left: 8px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #f7d7a5;
+      border: 2px solid #333;
+    }
+
+    .bat {
+      position: absolute;
+      right: -6px;
+      top: 6px;
+      width: 8px;
+      height: 80px;
+      background: #b8860b;
+      border-radius: 4px;
+      transform-origin: bottom center;
+      transition: transform 0.1s;
+    }
+
+    /* Swing animation */
+    .batter.swing .bat {
+      transform: rotate(-60deg);
+    }
+
+    .ball {
+      position: absolute;
+      bottom: 105px;
+      left: 180px; /* will be updated by JS */
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: white;
+      box-shadow: 0 0 6px rgba(0,0,0,0.7);
+      display: none;
+    }
+
+    /* Mini diamond for base running */
+    .diamond {
+      position: absolute;
+      left: 320px;
+      top: 40px;
+      width: 150px;
+      height: 120px;
+      border-radius: 8px;
+      border: 2px solid rgba(255,255,255,0.7);
+      background: rgba(0,0,0,0.15);
+    }
+
+    .base {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      background: #ffffff;
+      transform: rotate(45deg);
+      box-shadow: 0 0 3px rgba(0,0,0,0.5);
+    }
+
+    .base-home { left: 69px; top: 82px; }
+    .base-1    { left: 108px; top: 52px; }
+    .base-2    { left: 69px;  top: 22px; }
+    .base-3    { left: 30px;  top: 52px; }
+
+    .runner {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #ffeb3b;
+      border: 2px solid #222;
+      box-shadow: 0 0 4px rgba(0,0,0,0.7);
+      transition: left 0.25s linear, top 0.25s linear;
+      z-index: 5;
+    }
+
+    /* Scoreboard + controls */
+    #scoreboard {
+      max-width: 800px;
+      margin: 0 auto 15px auto;
+      text-align: left;
+      font-size: 14px;
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 10px 15px;
+    }
+
+    #scoreboard strong {
+      color: #002e6d;
+    }
+
+    #message {
+      margin-top: 8px;
+      font-weight: bold;
+    }
+
+    .controls {
+      margin-top: 10px;
+    }
+
+    .controls button {
+      padding: 8px 14px;
+      margin: 0 5px;
+      border-radius: 4px;
+      border: 1px solid #002e6d;
+      background: #004080;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .controls button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .tip {
+      font-size: 12px;
+      color: #555;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+  <a href="scratch2.html" class="back-link">← Back to Scratch Page</a>
+
+  <h1>Baseball Timing Game</h1>
+  <p class="subtitle">
+    Watch the pitch and press <strong>Swing</strong> (or hit the <strong>spacebar</strong>) at the right time!
+  </p>
+
+  <div id="scoreboard">
+    <div><strong>Strikes:</strong> <span id="strikes">0</span></div>
+    <div><strong>Outs:</strong> <span id="outs">0</span></div>
+    <div>
+      <strong>Hits:</strong>
+      Singles: <span id="singles">0</span> ·
+      Doubles: <span id="doubles">0</span> ·
+      Triples: <span id="triples">0</span> ·
+      Home Runs: <span id="homers">0</span>
+    </div>
+    <p id="message">Click "Start Pitch" to begin.</p>
+  </div>
+
+  <div id="field">
+    <div class="mound"></div>
+    <div class="home-plate"></div>
+
+    <div class="pitcher"></div>
+
+    <div class="batter">
+      <div class="bat"></div>
+    </div>
+
+    <div class="ball" id="ball"></div>
+
+    <!-- Mini overhead diamond for base running -->
+    <div class="diamond">
+      <div class="base base-home"></div>
+      <div class="base base-1"></div>
+      <div class="base base-2"></div>
+      <div class="base base-3"></div>
+      <div class="runner" id="runner"></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button id="pitchButton">Start Pitch</button>
+    <button id="swingButton">Swing</button>
+  </div>
+  <div class="tip">Tip: Spacebar also swings the bat.</div>
+
+  <script>
+    const ball = document.getElementById("ball");
+    const pitchButton = document.getElementById("pitchButton");
+    const swingButton = document.getElementById("swingButton");
+    const messageEl = document.getElementById("message");
+
+    const strikesEl = document.getElementById("strikes");
+    const outsEl = document.getElementById("outs");
+    const singlesEl = document.getElementById("singles");
+    const doublesEl = document.getElementById("doubles");
+    const triplesEl = document.getElementById("triples");
+    const homersEl = document.getElementById("homers");
+
+    const batterEl = document.querySelector(".batter");
+    const runner = document.getElementById("runner");
+
+    let strikes = 0;
+    let outs = 0;
+    let singles = 0;
+    let doubles = 0;
+    let triples = 0;
+    let homers = 0;
+
+    let ballX = 0;
+    const startX = 190;      // where the ball leaves the pitcher
+    const plateX = 650;      // where the batter is
+    const ballSpeed = 7;     // pixels per frame
+    let animationId = null;
+
+    let pitchInProgress = false;
+    let hasSwung = false;
+
+    // Base positions inside the diamond for the runner
+    const basePositions = {
+      0: { left: 69, top: 82 },  // home
+      1: { left: 108, top: 52 }, // first
+      2: { left: 69, top: 22 },  // second
+      3: { left: 30, top: 52 },  // third
+      4: { left: 69, top: 82 }   // back home
+    };
+
+    function placeRunnerAtBase(baseIndex) {
+      const pos = basePositions[baseIndex];
+      runner.style.left = pos.left + "px";
+      runner.style.top = pos.top + "px";
+    }
+
+    // Initialize runner at home
+    placeRunnerAtBase(0);
+
+    function updateScoreboard() {
+      strikesEl.textContent = strikes;
+      outsEl.textContent = outs;
+      singlesEl.textContent = singles;
+      doublesEl.textContent = doubles;
+      triplesEl.textContent = triples;
+      homersEl.textContent = homers;
+    }
+
+    function resetBall() {
+      ballX = startX;
+      ball.style.left = ballX + "px";
+      ball.style.display = "block";
+    }
+
+    function startPitch() {
+      if (pitchInProgress) return;
+
+      pitchInProgress = true;
+      hasSwung = false;
+      resetBall();
+      messageEl.textContent = "Pitch coming...";
+      pitchButton.disabled = true;
+
+      animateBall();
+    }
+
+    function animateBall() {
+      function step() {
+        ballX += ballSpeed;
+        ball.style.left = ballX + "px";
+
+        // If the ball passes the plate and no swing => strike looking
+        if (ballX > plateX + 80) {
+          registerStrike("Strike looking!");
+          return;
+        }
+
+        if (pitchInProgress) {
+          animationId = requestAnimationFrame(step);
+        }
+      }
+
+      animationId = requestAnimationFrame(step);
+    }
+
+    function swing() {
+      if (!pitchInProgress || hasSwung) return;
+
+      hasSwung = true;
+
+      // Little swing animation
+      batterEl.classList.add("swing");
+      setTimeout(() => batterEl.classList.remove("swing"), 200);
+
+      checkHit();
+    }
+
+    function checkHit() {
+      const diff = Math.abs(ballX - plateX);
+
+      // Perfect or near-perfect timing = better hit
+      if (diff <= 10) {
+        endPitchWithHit("Home run! 💥", 4);
+      } else if (diff <= 25) {
+        endPitchWithHit("Triple! 💨", 3);
+      } else if (diff <= 40) {
+        endPitchWithHit("Double! ⚾", 2);
+      } else if (diff <= 60) {
+        endPitchWithHit("Single! 👍", 1);
+      } else {
+        // Too early or too late -> strike
+        registerStrike("Swing and a miss!");
+      }
+    }
+
+    // basesToAdvance: 1 = single, 2 = double, 3 = triple, 4 = HR
+    function endPitchWithHit(text, basesToAdvance) {
+      cancelAnimationFrame(animationId);
+      pitchInProgress = false;
+      ball.style.display = "none";
+      strikes = 0; // reset strikes on a hit
+
+      if (basesToAdvance === 1) singles++;
+      if (basesToAdvance === 2) doubles++;
+      if (basesToAdvance === 3) triples++;
+      if (basesToAdvance === 4) homers++;
+
+      updateScoreboard();
+      messageEl.textContent = text + " Runner takes off!";
+
+      // Run around the bases, then reset for next batter
+      runBases(basesToAdvance, text);
+    }
+
+    function runBases(basesToAdvance, hitText) {
+      pitchButton.disabled = true;
+
+      // Path: start at home (0) then move 1 step for each base advanced
+      const path = [0];
+      for (let i = 1; i <= Math.min(basesToAdvance, 4); i++) {
+        path.push(i);
+      }
+
+      let stepIndex = 0;
+
+      function moveRunner() {
+        if (stepIndex >= path.length) {
+          // Pause on the final base, then reset to new batter
+          setTimeout(() => {
+            placeRunnerAtBase(0);
+            messageEl.textContent = hitText + " New batter up!";
+            pitchButton.disabled = false;
+          }, 800);
+          return;
+        }
+
+        placeRunnerAtBase(path[stepIndex]);
+        stepIndex++;
+        setTimeout(moveRunner, 300);
+      }
+
+      moveRunner();
+    }
+
+    function registerStrike(text) {
+      cancelAnimationFrame(animationId);
+      pitchInProgress = false;
+      ball.style.display = "none";
+
+      strikes++;
+      if (strikes >= 3) {
+        outs++;
+        strikes = 0;
+        messageEl.textContent = text + " Batter is OUT. New batter up.";
+      } else {
+        messageEl.textContent = text + " Strike " + strikes + ".";
+      }
+
+      pitchButton.disabled = false;
+      updateScoreboard();
+    }
+
+    // Button + keyboard events
+    pitchButton.addEventListener("click", startPitch);
+    swingButton.addEventListener("click", swing);
+
+    document.addEventListener("keydown", (e) => {
+      if (e.code === "Space") {
+        e.preventDefault();
+        swing();
+      }
+    });
+
+    // Initial scoreboard update
+    updateScoreboard();
+  </script>
+</body>
+</html>
+

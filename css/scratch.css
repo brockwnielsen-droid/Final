@@ -1,0 +1,84 @@
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 40px;
+    background-color: white;
+    color: black;
+}
+
+nav {
+  text-align: right;
+  margin-bottom: 10px;
+}
+
+.resume-header {
+    border-bottom: 3px solid #002E5D;
+    padding-bottom: 10px;
+    margin-bottom: 25px;
+}
+
+.resume-header h1 {
+    font-size: 28px;
+    margin: 0;
+    color: #002E5D; 
+}
+
+.resume-header p {
+    margin: 3px 0;
+    font-size: 14px;
+}
+
+.section-title {
+    font-size: 20px;
+    font-weight: bold;
+    color: #002E5D;
+    text-transform: uppercase;
+    margin-top: 30px;
+    margin-bottom: 5px;
+}
+
+.card-divider {
+    border: none;
+    border-top: 2px solid #002E5D;
+    margin-bottom: 15px;
+}
+
+.entry {
+    margin-bottom: 20px;
+}
+
+.entry-top {
+    display: flex;
+    justify-content: space-between; 
+    align-items: flex-start;       
+}
+
+.entry-org {
+    font-weight: bold;
+    font-size: 16px;
+    margin: 0; 
+}
+.entry-role {
+    font-style: italic;
+    margin: 2px 0 5px 0;
+}
+
+.entry-meta {
+    text-align: right;
+    font-size: 14px;
+    min-width: 150px;
+}
+
+.entry-meta p {
+    margin: 0;
+}
+
+.entry-list {
+    margin-top: 5px;
+    padding-left: 20px; 
+}
+
+.entry-list li {
+    margin-bottom: 4px;
+}
+
